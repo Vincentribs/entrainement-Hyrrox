@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Hyrox Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'DM Sans',-apple-system,sans-serif;background:#F3F4F6;color:#111;max-width:430px;margin:0 auto;min-height:100vh;padding-bottom:70px;position:relative;}
+  button{cursor:pointer;font-family:inherit;border:none;outline:none;}
+  textarea,input{font-family:inherit;outline:none;}
+  ::-webkit-scrollbar{display:none;}
+
+  .screen{display:none;} .screen.active{display:block;}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+
+  /* Top bar */
+  .topbar{background:#fff;padding:16px 16px 12px;border-bottom:1px solid #F3F4F6;position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;}
+  .topbar-sub{font-size:11px;color:#9CA3AF;font-weight:600;letter-spacing:.5px;}
+  .topbar-title{font-size:18px;font-weight:800;color:#111;letter-spacing:-.3px;}
+  .avatar{width:36px;height:36px;border-radius:50%;background:#FC4C02;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;}
+
+  /* Bottom nav */
+  .bottomnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid #F3F4F6;display:flex;z-index:20;}
+  .nav-btn{flex:1;padding:10px 4px 12px;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;}
+  .nav-icon{font-size:18px;color:#9CA3AF;}
+  .nav-label{font-size:10px;font-weight:600;color:#9CA3AF;letter-spacing:.2px;}
+  .nav-btn.active .nav-icon,.nav-btn.active .nav-label{color:#FC4C02;}
+
+  /* Cards */
+  .card{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:8px;}
+
+  /* Hero */
+  .hero{background:#FC4C02;border-radius:16px;padding:22px 20px;margin-bottom:20px;position:relative;overflow:hidden;}
+  .hero::after{content:'';position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.08);}
+  .hero-sub{font-size:11px;color:rgba(255,255,255,.75);font-weight:600;letter-spacing:1px;margin-bottom:4px;}
+  .hero-days{font-size:42px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1;}
+  .hero-info{font-size:13px;color:rgba(255,255,255,.75);margin-top:6px;margin-bottom:14px;}
+  .hero-bar{height:4px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden;}
+  .hero-fill{height:100%;background:#fff;border-radius:2px;transition:width .5s;}
+
+  /* Progress bar generic */
+  .pbar{height:6px;background:#F3F4F6;border-radius:3px;overflow:hidden;margin-top:5px;}
+  .pbar-fill{height:100%;background:#FC4C02;border-radius:3px;transition:width .6s;}
+
+  /* Week tabs */
+  .week-tabs{display:flex;background:#fff;border-bottom:1px solid #F3F4F6;position:sticky;top:57px;z-index:5;}
+  .week-tab{flex:1;padding:12px 4px;background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;}
+  .week-tab.active{border-bottom-color:#FC4C02;}
+  .week-tab .wt-label{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;}
+  .week-tab .wt-sub{font-size:10px;color:#C4C4C4;margin-top:1px;}
+  .week-tab.active .wt-label,.week-tab.active .wt-sub{color:#FC4C02;}
+
+  /* Day cards */
+  .day-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:8px;}
+  .day-row{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;}
+  .day-dot-wrap{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .day-dot{width:10px;height:10px;border-radius:50%;}
+  .day-type-label{font-size:10px;font-weight:700;letter-spacing:.5px;margin-bottom:2px;}
+  .day-title{font-size:15px;font-weight:600;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .day-title.done{color:#9CA3AF;text-decoration:line-through;}
+  .day-check{font-size:11px;font-weight:700;color:#22C55E;flex-shrink:0;}
+  .chevron{color:#D1D5DB;font-size:11px;transition:transform .2s;flex-shrink:0;}
+  .chevron.open{transform:rotate(180deg);}
+  .day-body{border-top:1px solid #F9FAFB;padding:14px 16px 16px;display:none;}
+  .day-body.open{display:block;}
+
+  /* Block preview rows */
+  .block-row{display:flex;align-items:center;gap:10px;padding:7px 10px;background:#F9FAFB;border-radius:8px;margin-bottom:5px;}
+  .block-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .block-name{font-size:12px;font-weight:600;color:#374151;}
+  .block-meta{font-size:11px;color:#9CA3AF;margin-left:8px;}
+
+  /* Buttons */
+  .btn-primary{width:100%;padding:14px;border-radius:10px;background:#FC4C02;color:#fff;font-size:14px;font-weight:700;letter-spacing:.2px;border:none;}
+  .btn-secondary{width:100%;padding:13px;border-radius:10px;background:#F9FAFB;color:#9CA3AF;font-size:13px;font-weight:700;border:1px solid #E5E7EB;}
+  .btn-ghost{background:none;border:none;color:#9CA3AF;font-size:14px;cursor:pointer;}
+
+  /* Session screen */
+  #session-screen{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:100%;z-index:100;display:none;flex-direction:column;background:#fff;}
+  #session-screen.visible{display:flex;}
+
+  /* Countdown */
+  #countdown-screen{background:#FC4C02;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+  .cd-sub{font-size:13px;color:rgba(255,255,255,.7);font-weight:600;letter-spacing:1px;margin-bottom:8px;}
+  .cd-number{font-size:120px;font-weight:900;color:#fff;letter-spacing:-4px;line-height:1;}
+
+  /* Running */
+  #running-screen{flex:1;display:flex;flex-direction:column;}
+  .run-header{padding:16px 20px 14px;border-bottom-width:3px;border-bottom-style:solid;}
+  .run-header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .run-round{font-size:11px;font-weight:700;letter-spacing:.5px;}
+  .run-total{font-size:12px;font-weight:600;color:#6B7280;}
+  .run-body{flex:1;display:flex;flex-direction:column;padding:24px 24px 20px;overflow:hidden;}
+  .run-block-label{font-size:13px;font-weight:700;letter-spacing:.5px;margin-bottom:6px;}
+  .run-pace{font-size:30px;font-weight:900;color:#111;letter-spacing:-1px;margin-bottom:4px;line-height:1.1;}
+  .run-km{font-size:15px;font-weight:600;color:#6B7280;margin-bottom:6px;}
+  .run-instruction{font-size:15px;color:#374151;line-height:1.5;margin-bottom:24px;}
+  .run-timer{text-align:center;margin-bottom:20px;}
+  .run-timer-label{font-size:11px;font-weight:600;color:#9CA3AF;letter-spacing:1px;margin-bottom:4px;}
+  .run-timer-value{font-size:72px;font-weight:900;letter-spacing:-3px;line-height:1;font-variant-numeric:tabular-nums;transition:color .3s;}
+  .run-elapsed{font-size:40px;font-weight:900;letter-spacing:-2px;color:#111;font-variant-numeric:tabular-nums;}
+  .run-elapsed-sub{font-size:13px;color:#9CA3AF;margin-top:4px;}
+  .upcoming{margin-bottom:16px;}
+  .upcoming-label{font-size:10px;font-weight:700;color:#D1D5DB;letter-spacing:.5px;margin-bottom:6px;}
+  .run-controls{display:flex;gap:10px;padding:0 0 8px;}
+  .ctrl-pause{flex:1;padding:15px;border-radius:12px;font-size:15px;font-weight:700;}
+  .ctrl-next{padding:15px;border-radius:12px;font-size:15px;font-weight:700;}
+  .ctrl-stop{padding:15px 16px;border-radius:12px;border:1px solid #E5E7EB;background:#fff;color:#9CA3AF;font-size:13px;font-weight:600;}
+
+  /* Done screen */
+  #done-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;}
+
+  /* Stats mini cards */
+  .stat-grid{display:flex;gap:8px;margin-bottom:8px;}
+  .stat-card{flex:1;background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+  .stat-label{font-size:10px;color:#9CA3AF;font-weight:600;letter-spacing:.5px;margin-bottom:4px;}
+  .stat-value{font-size:22px;font-weight:800;color:#111;}
+  .stat-unit{font-size:12px;color:#9CA3AF;margin-left:2px;font-weight:400;}
+
+  /* Section label */
+  .section-label{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;margin-bottom:10px;margin-top:4px;}
+
+  /* Devalidate btn */
+  .btn-devalidate{width:100%;padding:11px;border-radius:10px;background:#F9FAFB;color:#9CA3AF;font-size:12px;font-weight:600;border:1px solid #E5E7EB;margin-top:8px;}
+</style>
+</head>
+<body>
+
+<!-- MAIN APP -->
+<div id="app-screen" class="screen active">
+  <!-- Top bar -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-sub">BONJOUR VINCENT</div>
+      <div class="topbar-title" id="topbar-title">Tableau de bord</div>
+    </div>
+    <div class="avatar">V</div>
+  </div>
+
+  <!-- Tabs -->
+  <div id="home-tab" class="tab-content active"><div style="padding:20px 16px;" id="home-content"></div></div>
+  <div id="plan-tab" class="tab-content">
+    <div class="week-tabs">
+      <button class="week-tab active" onclick="switchWeek(1)"><div class="wt-label">SEM. 1</div><div class="wt-sub">Construction</div></button>
+      <button class="week-tab" onclick="switchWeek(2)"><div class="wt-label">SEM. 2</div><div class="wt-sub">Simulation</div></button>
+      <button class="week-tab" onclick="switchWeek(3)"><div class="wt-label">SEM. 3</div><div class="wt-sub">Tapering</div></button>
+    </div>
+    <div style="padding:16px;" id="plan-content"></div>
+  </div>
+  <div id="stats-tab" class="tab-content"><div style="padding:20px 16px;" id="stats-content"></div></div>
+
+  <!-- Bottom nav -->
+  <nav class="bottomnav">
+    <button class="nav-btn active" id="nav-home" onclick="switchTab('home')">
+      <span class="nav-icon">⊞</span><span class="nav-label">Accueil</span>
+    </button>
+    <button class="nav-btn" id="nav-plan" onclick="switchTab('plan')">
+      <span class="nav-icon">◫</span><span class="nav-label">Plan</span>
+    </button>
+    <button class="nav-btn" id="nav-stats" onclick="switchTab('stats')">
+      <span class="nav-icon">▦</span><span class="nav-label">Stats</span>
+    </button>
+  </nav>
+</div>
+
+<!-- SESSION SCREEN -->
+<div id="session-screen">
+  <!-- Countdown -->
+  <div id="countdown-screen">
+    <div class="cd-sub" id="cd-title"></div>
+    <div class="cd-number" id="cd-number">3</div>
+    <div style="font-size:16px;color:rgba(255,255,255,.8);margin-top:16px;">Prépare-toi…</div>
+    <button onclick="cancelSession()" style="margin-top:48px;background:rgba(255,255,255,.2);border:none;border-radius:10px;padding:12px 24px;color:#fff;font-size:13px;font-weight:600;">Annuler</button>
+  </div>
+
+  <!-- Running -->
+  <div id="running-screen" style="display:none;">
+    <div class="run-header" id="run-header">
+      <div class="run-header-top">
+        <span class="run-round" id="run-round-label"></span>
+        <span class="run-total" id="run-total-time">Total 00:00</span>
+      </div>
+      <div class="pbar"><div class="pbar-fill" id="run-progress" style="width:0%"></div></div>
+    </div>
+    <div class="run-body">
+      <div class="run-block-label" id="run-block-label"></div>
+      <div class="run-pace" id="run-pace"></div>
+      <div class="run-km" id="run-km"></div>
+      <div class="run-instruction" id="run-instruction"></div>
+
+      <div class="run-timer" id="timer-section">
+        <div class="run-timer-label">TEMPS RESTANT</div>
+        <div class="run-timer-value" id="run-timer-value">00:00</div>
+        <svg width="100%" height="6" style="margin-top:8px;border-radius:3px;overflow:hidden;">
+          <rect width="100%" height="6" fill="#F3F4F6" rx="3"/>
+          <rect id="timer-bar" width="0%" height="6" fill="#FC4C02" rx="3"/>
+        </svg>
+      </div>
+      <div class="run-timer" id="elapsed-section" style="display:none;">
+        <div class="run-elapsed" id="run-elapsed-value">00:00</div>
+        <div class="run-elapsed-sub">Chrono en cours — appuie sur Suivant quand c'est fait</div>
+      </div>
+
+      <div class="upcoming" id="upcoming-section"></div>
+      <div style="flex:1"></div>
+      <div class="run-controls">
+        <button class="ctrl-pause" id="ctrl-pause" onclick="togglePause()">Pause</button>
+        <button class="ctrl-next" id="ctrl-next" onclick="nextBlock()">Passer</button>
+        <button class="ctrl-stop" onclick="stopSession()">Stop</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done -->
+  <div id="done-screen" style="display:none;flex-direction:column;min-height:100vh;background:#F3F4F6;">
+    <!-- Done header -->
+    <div style="background:#fff;padding:20px 16px 16px;border-bottom:1px solid #F3F4F6;">
+      <div style="font-size:11px;color:#9CA3AF;font-weight:600;letter-spacing:.5px;margin-bottom:4px;">SÉANCE TERMINÉE</div>
+      <div style="font-size:20px;font-weight:800;color:#111;margin-bottom:12px;" id="done-title"></div>
+      <div style="background:#FFF0EB;border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:10px;color:#FC4C02;font-weight:700;letter-spacing:.5px;margin-bottom:2px;">TEMPS TOTAL</div>
+          <div style="font-size:36px;font-weight:900;color:#FC4C02;letter-spacing:-2px;line-height:1;" id="done-time"></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;color:#9CA3AF;font-weight:600;letter-spacing:.5px;margin-bottom:2px;">BLOCS</div>
+          <div style="font-size:24px;font-weight:800;color:#111;" id="done-blocks-count"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Block details -->
+    <div style="flex:1;overflow-y:auto;padding:16px;" id="done-blocks-list"></div>
+
+    <!-- Actions -->
+    <div style="background:#fff;padding:16px;border-top:1px solid #F3F4F6;">
+      <button class="btn-primary" style="margin-bottom:10px;" onclick="validateSession()">Valider la séance</button>
+      <button class="btn-ghost" style="width:100%;padding:10px;" onclick="cancelSession()">Annuler sans enregistrer</button>
+    </div>
+  </div>
+
+  <!-- Rest -->
+  <div id="rest-screen" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;">
+    <div style="font-size:48px;margin-bottom:20px;">🧘</div>
+    <div style="font-size:22px;font-weight:800;color:#111;margin-bottom:8px;" id="rest-title"></div>
+    <div style="font-size:15px;color:#6B7280;line-height:1.7;max-width:280px;margin-bottom:40px;" id="rest-msg"></div>
+    <button class="btn-primary" style="max-width:280px;" onclick="validateRestSession()">Marquer comme fait</button>
+    <button class="btn-ghost" style="margin-top:12px;" onclick="cancelSession()">Annuler</button>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="edit-modal" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;height:100%;z-index:200;background:rgba(0,0,0,.5);">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;max-height:90vh;display:flex;flex-direction:column;">
+    <div style="padding:20px 16px 14px;border-bottom:1px solid #F3F4F6;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <div>
+        <div style="font-size:11px;color:#9CA3AF;font-weight:600;letter-spacing:.5px;margin-bottom:2px;">MODIFIER LA SÉANCE</div>
+        <div style="font-size:17px;font-weight:800;color:#111;" id="edit-title"></div>
+      </div>
+      <button onclick="closeEdit()" style="background:#F3F4F6;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;color:#6B7280;display:flex;align-items:center;justify-content:center;">×</button>
+    </div>
+    <div style="overflow-y:auto;padding:16px;flex:1;" id="edit-body"></div>
+    <div style="padding:16px;border-top:1px solid #F3F4F6;flex-shrink:0;">
+      <button class="btn-primary" style="margin-bottom:8px;" onclick="saveEdit()">Enregistrer les modifications</button>
+      <button style="width:100%;padding:11px;border-radius:10px;border:1px solid #E5E7EB;background:#fff;color:#9CA3AF;font-size:12px;font-weight:600;cursor:pointer;" onclick="resetEdit()">Remettre les valeurs par défaut</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── PLAN DATA ───────────────────────────────────────────────────────────────
+const PLAN = [
+  { id:1, date:"Jeu 12 mars", week:1, type:"INTENSIF", title:"Run fractionnés sous fatigue", tip:"Ne pars pas trop vite sur le premier km.",
+    km:"~10 km au total", distanceKm: 10,
+    session:{ type:"intervals", blocks:[
+      { label:"Échauffement",   duration:900,  pace:"6'20\"/km", km:"~2.3 km", intensity:"easy",   instruction:"Allure légère, corps qui se réveille" },
+      { label:"Intervalle 1",   duration:270,  pace:"4'30\"/km", km:"1 km",    intensity:"hard",   instruction:"Pousse — allure Hyrox race" },
+      { label:"Récupération",   duration:90,   pace:"Marche",    km:"",        intensity:"rest",   instruction:"Marche, reprends ton souffle" },
+      { label:"Intervalle 2",   duration:270,  pace:"4'30\"/km", km:"1 km",    intensity:"hard",   instruction:"Même allure, reste régulier" },
+      { label:"Récupération",   duration:90,   pace:"Marche",    km:"",        intensity:"rest",   instruction:"Marche active" },
+      { label:"Intervalle 3",   duration:270,  pace:"4'30\"/km", km:"1 km",    intensity:"hard",   instruction:"Mi-séance, tiens la cadence" },
+      { label:"Récupération",   duration:90,   pace:"Marche",    km:"",        intensity:"rest",   instruction:"Récupère bien" },
+      { label:"Intervalle 4",   duration:270,  pace:"4'30\"/km", km:"1 km",    intensity:"hard",   instruction:"Plus que 3 — reste concentré" },
+      { label:"Récupération",   duration:90,   pace:"Marche",    km:"",        intensity:"rest",   instruction:"Marche, prépare le suivant" },
+      { label:"Intervalle 5",   duration:270,  pace:"4'30\"/km", km:"1 km",    intensity:"hard",   instruction:"Avant-dernier — tout donner" },
+      { label:"Récupération",   duration:90,   pace:"Marche",    km:"",        intensity:"rest",   instruction:"Dernier repos" },
+      { label:"Intervalle 6",   duration:270,  pace:"4'30\"/km", km:"1 km",    intensity:"hard",   instruction:"DERNIER — vide le réservoir !" },
+      { label:"Retour au calme",duration:600,  pace:"6'30\"/km", km:"~1.5 km", intensity:"easy",   instruction:"Décélère progressivement, respire" },
+    ]}
+  },
+  { id:2, date:"Ven 13 mars", week:1, type:"FORCE", title:"Circuit stations Hyrox", tip:"Focus qualité de mouvement. Pas de run entre les stations.",
+    km:"3 rounds complets", distanceKm: 0,
+    session:{ type:"circuit", rounds:3, blocks:[
+      { label:"Ski Erg",       duration:null, reps:"500m",    intensity:"hard",   instruction:"Tirage complet, gainage actif" },
+      { label:"Sled Push",     duration:null, reps:"25m",     intensity:"hard",   instruction:"Dos plat, pousse avec les jambes" },
+      { label:"Farmers Carry", duration:null, reps:"100m",    intensity:"medium", instruction:"Épaules en arrière, pas chassé" },
+      { label:"Wall Balls",    duration:null, reps:"20 reps", intensity:"hard",   instruction:"Squat complet, lancé à hauteur" },
+      { label:"Récupération",  duration:180,  reps:"3 min",   intensity:"rest",   instruction:"Récup avant le prochain round" },
+    ]}
+  },
+  { id:3, date:"Sam 14 mars", week:1, type:"REPOS", title:"Repos actif", tip:"Le repos est une séance comme les autres.", km:"—", distanceKm:0,
+    session:{ type:"rest", message:"Mobilité douce, étirements, marche légère. Pas d'effort." }
+  },
+  { id:4, date:"Dim 15 mars", week:1, type:"ENDURANCE", title:"Long run aérobie", tip:"Allure conversationnelle — si tu dois parler pour tenir l'allure, tu vas trop vite.", km:"12 km", distanceKm:12,
+    session:{ type:"intervals", blocks:[
+      { label:"Run continu", duration:4200, pace:"5'45\"–6'00\"/km", km:"12 km", intensity:"medium", instruction:"Allure régulière et confortable. Reste en zone aérobie." },
+    ]}
+  },
+  { id:5, date:"Lun 16 mars", week:1, type:"REPOS", title:"Repos complet", tip:"Prépare le corps pour la semaine de simulation.", km:"—", distanceKm:0,
+    session:{ type:"rest", message:"Repos total. Hydratation, sommeil, récupération musculaire." }
+  },
+  { id:6, date:"Mar 17 mars", week:2, type:"INTENSIF", title:"Simulation transitions Run → Station", tip:"La clé Hyrox : courir vite APRÈS un effort musculaire.", km:"~8 km de run + stations", distanceKm:8,
+    session:{ type:"intervals", blocks:[
+      { label:"Run 1",          duration:260, pace:"4'35\"/km", km:"~1 km", intensity:"hard",   instruction:"Run fort — rythme race" },
+      { label:"Rowing 250m",    duration:180, pace:"Station",   km:"",      intensity:"hard",   instruction:"Enchaîne direct sur le rameur" },
+      { label:"Récupération",   duration:120, pace:"Marche",    km:"",      intensity:"rest",   instruction:"2 min de récup" },
+      { label:"Run 2",          duration:260, pace:"4'35\"/km", km:"~1 km", intensity:"hard",   instruction:"Repart fort malgré la fatigue" },
+      { label:"Sandbag Lunges", duration:180, pace:"Station",   km:"",      intensity:"hard",   instruction:"20 lunges, sac bien calé" },
+      { label:"Récupération",   duration:120, pace:"Marche",    km:"",      intensity:"rest",   instruction:"Récup 2 min" },
+      { label:"Run 3",          duration:260, pace:"4'35\"/km", km:"~1 km", intensity:"hard",   instruction:"Mi-séance — tiens l'allure" },
+      { label:"Rowing 250m",    duration:180, pace:"Station",   km:"",      intensity:"hard",   instruction:"Force sur chaque tirage" },
+      { label:"Récupération",   duration:120, pace:"Marche",    km:"",      intensity:"rest",   instruction:"Avant-dernier repos" },
+      { label:"Run 4",          duration:260, pace:"4'35\"/km", km:"~1 km", intensity:"hard",   instruction:"DERNIER bloc — tout dedans" },
+      { label:"Sandbag Lunges", duration:180, pace:"Station",   km:"",      intensity:"hard",   instruction:"Dernier effort — vide le réservoir" },
+    ]}
+  },
+  { id:7, date:"Mer 18 mars", week:2, type:"FORCE", title:"Renforcement spécifique", tip:"Mieux vaut moins de charge avec une bonne technique.", km:"4 rounds", distanceKm:0,
+    session:{ type:"circuit", rounds:4, blocks:[
+      { label:"Sled Push",          duration:null, reps:"30m lourd", intensity:"hard",   instruction:"Dos plat, pieds ancrés, pousse" },
+      { label:"Farmers Carry",      duration:null, reps:"100m",      intensity:"medium", instruction:"Gainage serré, épaules basses" },
+      { label:"Wall Balls",         duration:null, reps:"15 reps",   intensity:"hard",   instruction:"Squat profond, balle haute" },
+      { label:"Burpee Broad Jumps", duration:null, reps:"10 reps",   intensity:"hard",   instruction:"Saut long, réception souple" },
+      { label:"Récupération",       duration:120,  reps:"2 min",     intensity:"rest",   instruction:"2 min entre rounds" },
+    ]}
+  },
+  { id:8, date:"Jeu 19 mars", week:2, type:"REPOS", title:"Repos actif", tip:"Couche-toi tôt.", km:"—", distanceKm:0,
+    session:{ type:"rest", message:"Mobilité 20 min. Marche légère. Sommeil prioritaire." }
+  },
+  { id:9, date:"Ven 20 mars", week:2, type:"INTENSIF", title:"Run tempo + seuil", tip:"Inconfortable mais tenable.", km:"~8 km", distanceKm:8,
+    session:{ type:"intervals", blocks:[
+      { label:"Échauffement",   duration:900,  pace:"6'00\"/km",         km:"~2.5 km", intensity:"easy",   instruction:"Allure très légère, corps en chauffe" },
+      { label:"Tempo seuil",    duration:1200, pace:"5'00\"–5'15\"/km",  km:"~4 km",   intensity:"hard",   instruction:"20 min de seuil — inconfortable mais régulier" },
+      { label:"Retour au calme",duration:600,  pace:"6'00\"/km",         km:"~1.5 km", intensity:"easy",   instruction:"Décélère, respire, récupère" },
+    ]}
+  },
+  { id:10, date:"Sam 21 mars", week:2, type:"SIMULATION", title:"Mini Hyrox — simulation", tip:"Séance la plus importante du plan. Note ton temps total.", km:"4 km de run + 4 stations", distanceKm:4,
+    session:{ type:"intervals", blocks:[
+      { label:"Run 1 km",          duration:310, pace:"5'00\"–5'20\"/km", km:"1 km",  intensity:"hard", instruction:"Premier run — gère ton énergie" },
+      { label:"Ski Erg 500m",      duration:null, pace:"Station",         km:"500m",  intensity:"hard", instruction:"Tirage complet, respiration rythmée" },
+      { label:"Run 1 km",          duration:310, pace:"5'00\"–5'20\"/km", km:"1 km",  intensity:"hard", instruction:"Maintiens l'allure malgré le Ski Erg" },
+      { label:"Sled Push 25m",     duration:null, pace:"Station",         km:"25m",   intensity:"hard", instruction:"Pousse bas, pas chassés courts" },
+      { label:"Run 1 km",          duration:310, pace:"5'00\"–5'20\"/km", km:"1 km",  intensity:"hard", instruction:"Mi-course — tiens le rythme" },
+      { label:"Rowing 500m",       duration:null, pace:"Station",         km:"500m",  intensity:"hard", instruction:"Tirage puissant, dos bien engagé" },
+      { label:"Run 1 km",          duration:310, pace:"5'00\"–5'20\"/km", km:"1 km",  intensity:"hard", instruction:"DERNIER run — tout ce qui reste" },
+      { label:"Wall Balls 20 reps",duration:null, pace:"Station",         km:"20 reps",intensity:"hard",instruction:"Finis fort — dernier effort !" },
+    ]}
+  },
+  { id:11, date:"Dim 22 mars", week:2, type:"REPOS", title:"Repos complet", tip:"Laisse le corps absorber la simulation.", km:"—", distanceKm:0,
+    session:{ type:"rest", message:"Repos total. Étirements doux. Nutrition soignée." }
+  },
+  { id:12, date:"Lun 23 mars", week:2, type:"ENDURANCE", title:"Run long modéré", tip:"Si les jambes sont lourdes, réduis à 6 km.", km:"8 km", distanceKm:8,
+    session:{ type:"intervals", blocks:[
+      { label:"Run continu", duration:2880, pace:"5'45\"–6'00\"/km", km:"8 km", intensity:"medium", instruction:"Allure facile. Jambes légères." },
+    ]}
+  },
+  { id:13, date:"Mar 24 mars", week:3, type:"LÉGER", title:"Run d'activation", tip:"Corps en éveil, pas de fatigue.", km:"~6 km", distanceKm:6,
+    session:{ type:"intervals", blocks:[
+      { label:"Run facile",       duration:1650, pace:"5'30\"/km", km:"~5 km", intensity:"medium", instruction:"Allure légère, relâché" },
+      { label:"Accélération 1",   duration:20,   pace:"4'20\"/km", km:"~100m", intensity:"hard",   instruction:"Sprint court — explosif !" },
+      { label:"Récup",            duration:60,   pace:"Marche",   km:"",       intensity:"rest",   instruction:"Récup complète" },
+      { label:"Accélération 2",   duration:20,   pace:"4'20\"/km", km:"~100m", intensity:"hard",   instruction:"Deuxième sprint" },
+      { label:"Récup",            duration:60,   pace:"Marche",   km:"",       intensity:"rest",   instruction:"Récup" },
+      { label:"Accélération 3",   duration:20,   pace:"4'20\"/km", km:"~100m", intensity:"hard",   instruction:"Troisième" },
+      { label:"Récup",            duration:60,   pace:"Marche",   km:"",       intensity:"rest",   instruction:"Récup" },
+      { label:"Accélération 4",   duration:20,   pace:"4'20\"/km", km:"~100m", intensity:"hard",   instruction:"Quatrième" },
+      { label:"Récup",            duration:60,   pace:"Marche",   km:"",       intensity:"rest",   instruction:"Récup" },
+      { label:"Accélération 5",   duration:20,   pace:"4'20\"/km", km:"~100m", intensity:"hard",   instruction:"Dernier sprint !" },
+      { label:"Retour calme",     duration:300,  pace:"6'00\"/km", km:"~0.5 km",intensity:"easy",  instruction:"Finit tranquille" },
+    ]}
+  },
+  { id:14, date:"Mer 25 mars", week:3, type:"LÉGER", title:"Technique stations", tip:"Mémorise les sensations. Répétition mentale avant J-Day.", km:"1 passage × 8 stations", distanceKm:0,
+    session:{ type:"circuit", rounds:1, blocks:[
+      { label:"Ski Erg",        duration:null, reps:"250m léger", intensity:"medium", instruction:"50% intensité — technique pure" },
+      { label:"Sled Push",      duration:null, reps:"15m",        intensity:"medium", instruction:"Léger, mémorise la posture" },
+      { label:"Sled Pull",      duration:null, reps:"15m",        intensity:"medium", instruction:"Tirage contrôlé, dos droit" },
+      { label:"Burpee BJ",      duration:null, reps:"5 reps",     intensity:"medium", instruction:"Mouvement propre, sans se presser" },
+      { label:"Rowing",         duration:null, reps:"250m",       intensity:"medium", instruction:"Cadence modérée, technique" },
+      { label:"Farmers Carry",  duration:null, reps:"50m",        intensity:"medium", instruction:"Charge légère, posture parfaite" },
+      { label:"Sandbag Lunges", duration:null, reps:"10 reps",    intensity:"medium", instruction:"Profond et contrôlé" },
+      { label:"Wall Balls",     duration:null, reps:"10 reps",    intensity:"medium", instruction:"Rythme régulier, hauteur correcte" },
+    ]}
+  },
+  { id:15, date:"Jeu 26 mars", week:3, type:"REPOS", title:"Repos actif", tip:"Visualise le parcours entier dans ta tête.", km:"—", distanceKm:0,
+    session:{ type:"rest", message:"Mobilité 20 min. Visualisation mentale du parcours Hyrox." }
+  },
+  { id:16, date:"Ven 27 mars", week:3, type:"ACTIVATION", title:"Activation courte", tip:"Corps frais et réactif. Pas de fatigue.", km:"~3.5 km", distanceKm:3.5,
+    session:{ type:"intervals", blocks:[
+      { label:"Run facile",     duration:990, pace:"5'30\"/km", km:"~3 km",  intensity:"easy",   instruction:"Tranquille, corps en éveil" },
+      { label:"200m rapide 1",  duration:50,  pace:"4'15\"/km", km:"~200m",  intensity:"hard",   instruction:"Explosif, court" },
+      { label:"Récup complète", duration:90,  pace:"Marche",   km:"",        intensity:"rest",   instruction:"Récup totale" },
+      { label:"200m rapide 2",  duration:50,  pace:"4'15\"/km", km:"~200m",  intensity:"hard",   instruction:"Deuxième accélération" },
+      { label:"Récup complète", duration:90,  pace:"Marche",   km:"",        intensity:"rest",   instruction:"Récup totale" },
+      { label:"200m rapide 3",  duration:50,  pace:"4'15\"/km", km:"~200m",  intensity:"hard",   instruction:"Dernier — corps prêt pour demain" },
+    ]}
+  },
+  { id:17, date:"Sam 28 mars", week:3, type:"REPOS", title:"Veille — Repos total", tip:"Tu es prêt. Le travail est fait.", km:"—", distanceKm:0,
+    session:{ type:"rest", message:"Aucun effort. Repas glucidique le soir. Couché avant 22h." }
+  },
+];
+
+const TYPE_META = {
+  INTENSIF:   { color:"#FC4C02", bg:"#FFF0EB", label:"Intensif" },
+  FORCE:      { color:"#2563EB", bg:"#EFF6FF", label:"Force" },
+  REPOS:      { color:"#9CA3AF", bg:"#F9FAFB", label:"Repos" },
+  ENDURANCE:  { color:"#059669", bg:"#ECFDF5", label:"Endurance" },
+  SIMULATION: { color:"#FC4C02", bg:"#FFF0EB", label:"Simulation" },
+  LÉGER:      { color:"#7C3AED", bg:"#F5F3FF", label:"Léger" },
+  ACTIVATION: { color:"#D97706", bg:"#FFFBEB", label:"Activation" },
+};
+
+const INT_COLORS = {
+  easy:   { bar:"#059669", bg:"#ECFDF5", text:"#059669" },
+  medium: { bar:"#2563EB", bg:"#EFF6FF", text:"#2563EB" },
+  hard:   { bar:"#FC4C02", bg:"#FFF0EB", text:"#FC4C02" },
+  rest:   { bar:"#E5E7EB", bg:"#F9FAFB", text:"#9CA3AF" },
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let state = {
+  completed: {},
+  notes: {},
+  activities: [],
+  customSessions: {}, // {planId: {blocks, rounds}} — user overrides
+  activeWeek: 1,
+  currentTab: "home",
+  openDayId: null,
+};
+
+// Session state
+let sess = {
+  day: null,
+  blockIdx: 0,
+  round: 1,
+  blockElapsed: 0,
+  totalElapsed: 0,
+  paused: false,
+  phase: "idle", // idle|countdown|running|done
+  completedBlocks: [],
+  blockTimes: [],   // {label, planned, actual, round}
+  cdValue: 3,
+};
+let tickInterval = null;
+let cdInterval = null;
+let audioCtx = null;
+
+// ─── STORAGE ─────────────────────────────────────────────────────────────────
+function save() {
+  try { localStorage.setItem("hyrox_v5", JSON.stringify({ completed: state.completed, notes: state.notes, activities: state.activities, customSessions: state.customSessions })); } catch {}
+}
+function load() {
+  try { const d = JSON.parse(localStorage.getItem("hyrox_v5") || "{}"); state.completed = d.completed || {}; state.notes = d.notes || {}; state.activities = d.activities || []; state.customSessions = d.customSessions || {}; } catch {}
+}
+
+// Get effective session for a day (custom override or default)
+function getSession(day) {
+  if (state.customSessions[day.id]) {
+    return { ...day.session, ...state.customSessions[day.id] };
+  }
+  return day.session;
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const pad = n => String(n).padStart(2, "0");
+const fmtTime = s => { const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60; return h > 0 ? `${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`; };
+const getDaysLeft = () => Math.ceil((new Date("2026-03-29") - new Date()) / 86400000);
+
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+function beep(freq=880, dur=0.15, vol=0.4) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.frequency.value = freq; g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    o.start(); o.stop(audioCtx.currentTime + dur);
+  } catch {}
+}
+function tripleBeep() { beep(660,.1); setTimeout(()=>beep(660,.1),160); setTimeout(()=>beep(880,.2),320); }
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById(tab + "-tab").classList.add("active");
+  document.getElementById("nav-" + tab).classList.add("active");
+  const titles = { home:"Tableau de bord", plan:"Plan 17 jours", stats:"Statistiques" };
+  document.getElementById("topbar-title").textContent = titles[tab];
+  if (tab === "home") renderHome();
+  if (tab === "plan") renderPlan();
+  if (tab === "stats") renderStats();
+}
+
+function switchWeek(w) {
+  state.activeWeek = w;
+  document.querySelectorAll(".week-tab").forEach((t,i) => t.classList.toggle("active", i === w-1));
+  renderPlan();
+}
+
+// ─── RENDER HOME ─────────────────────────────────────────────────────────────
+function renderHome() {
+  const daysLeft = getDaysLeft();
+  const completedCount = Object.values(state.completed).filter(Boolean).length;
+  const pct = Math.round(completedCount / 17 * 100);
+  const totalDist = state.activities.reduce((s,a) => s + (a.distanceKm||0), 0);
+  const totalTime = state.activities.reduce((s,a) => s + (a.duration||0), 0);
+  const nextDay = PLAN.find(d => !state.completed[d.id]);
+  const recent = [...state.activities].reverse().slice(0,3);
+
+  let html = `
+    <div class="hero">
+      <div class="hero-sub">HYROX · 29 MARS</div>
+      <div class="hero-days">J-${daysLeft}</div>
+      <div class="hero-info">${completedCount}/17 séances complétées</div>
+      <div class="hero-bar"><div class="hero-fill" style="width:${pct}%"></div></div>
+    </div>`;
+
+  if (nextDay) {
+    const tm = TYPE_META[nextDay.type] || TYPE_META.REPOS;
+    html += `
+    <div class="section-label">PROCHAINE SÉANCE</div>
+    <div class="card" style="border-left:4px solid ${tm.color}">
+      <div style="font-size:10px;font-weight:700;color:${tm.color};letter-spacing:.5px;margin-bottom:4px;">${tm.label.toUpperCase()} · ${nextDay.date}</div>
+      <div style="font-size:16px;font-weight:700;color:#111;margin-bottom:4px;">${nextDay.title}</div>
+      <div style="font-size:13px;color:#6B7280;margin-bottom:12px;">${nextDay.km}</div>
+      <button class="btn-primary" onclick="startSession(${nextDay.id})">Lancer maintenant →</button>
+    </div>`;
+  }
+
+  html += `
+    <div class="section-label" style="margin-top:16px;">MES STATS</div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">DISTANCE</div><div class="stat-value">${totalDist.toFixed(1)}<span class="stat-unit">km</span></div></div>
+      <div class="stat-card"><div class="stat-label">TEMPS</div><div class="stat-value">${fmtTime(totalTime)}</div></div>
+    </div>`;
+
+  if (recent.length > 0) {
+    html += `<div class="section-label" style="margin-top:16px;">ACTIVITÉS RÉCENTES</div>`;
+    recent.forEach(a => {
+      html += `
+      <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:11px;color:#9CA3AF;margin-bottom:2px;">${a.date}</div>
+          <div style="font-size:15px;font-weight:700;color:#111;">${a.title}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:18px;font-weight:800;color:#FC4C02;">${fmtTime(a.duration)}</div>
+          ${a.distanceKm > 0 ? `<div style="font-size:11px;color:#9CA3AF;">${a.distanceKm} km</div>` : ""}
+        </div>
+      </div>`;
+    });
+  }
+
+  document.getElementById("home-content").innerHTML = html;
+}
+
+// ─── RENDER PLAN ─────────────────────────────────────────────────────────────
+function renderPlan() {
+  const days = PLAN.filter(d => d.week === state.activeWeek);
+  let html = "";
+  days.forEach(day => {
+    const done = !!state.completed[day.id];
+    const tm = TYPE_META[day.type] || TYPE_META.REPOS;
+    const isOpen = state.openDayId === day.id;
+    const blocks = getSession(day).blocks || [];
+    const sessionRounds = getSession(day).rounds || 1;
+
+    html += `
+    <div class="day-card" id="daycard-${day.id}">
+      <div class="day-row" onclick="toggleDay(${day.id})">
+        <div class="day-dot-wrap" style="background:${done?"#F0FDF4":tm.bg}">
+          <div class="day-dot" style="background:${done?"#22C55E":tm.color}"></div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div class="day-type-label" style="color:${tm.color}">${tm.label.toUpperCase()} · ${day.date}</div>
+          <div class="day-title ${done?"done":""}">${day.title}</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:2px;">${day.km}${state.customSessions[day.id] ? ' <span style="color:#D97706;font-weight:600;">· modifié</span>' : ""}</div>
+        </div>
+        ${done ? `<div class="day-check">✓</div>` : ""}
+        <div class="chevron ${isOpen?"open":""}">▼</div>
+      </div>
+      <div class="day-body ${isOpen?"open":""}">
+        <div style="font-size:12px;color:#6B7280;line-height:1.6;font-style:italic;margin-bottom:12px;border-left:2px solid ${tm.color}44;padding-left:10px;">${day.tip}</div>
+        ${day.session.type !== "rest" ? `
+          <div style="margin-bottom:12px;">
+            ${blocks.map(b => {
+              const ic = INT_COLORS[b.intensity] || INT_COLORS.medium;
+              const meta = b.pace || b.reps || (b.duration ? fmtTime(b.duration) : "");
+              const kmLabel = b.km ? ` · ${b.km}` : "";
+              return `<div class="block-row">
+                <div class="block-dot" style="background:${ic.bar}"></div>
+                <div><span class="block-name">${b.label}</span><span class="block-meta">${meta}${kmLabel}</span></div>
+              </div>`;
+            }).join("")}
+            ${sessionRounds > 1 ? `<div style="font-size:11px;color:#9CA3AF;margin-top:4px;">× ${sessionRounds} rounds</div>` : ""}
+          </div>` : `<div style="font-size:14px;color:#6B7280;line-height:1.6;margin-bottom:12px;">${day.session.message}</div>`}
+        <textarea id="note-${day.id}" placeholder="Notes après séance..." rows="2"
+          style="width:100%;background:#F9FAFB;border:1px solid #F3F4F6;border-radius:8px;padding:10px 12px;color:#374151;font-size:13px;resize:none;margin-bottom:10px;"
+          oninput="saveNote(${day.id}, this.value)">${state.notes[day.id]||""}</textarea>
+        <button class="btn-primary" onclick="startSession(${day.id})">${done ? "Refaire la séance" : "Lancer la séance →"}</button>
+        <button style="width:100%;padding:11px;border-radius:10px;border:1px solid #E5E7EB;background:#fff;color:#374151;font-size:13px;font-weight:600;margin-top:8px;cursor:pointer;" onclick="openEdit(${day.id})">Modifier la séance</button>
+        ${done ? `<button class="btn-devalidate" onclick="devalidate(${day.id})">Dévalider cette séance</button>` : ""}
+      </div>
+    </div>`;
+  });
+
+  if (state.activeWeek === 3) {
+    html += `
+    <div style="margin-top:12px;background:#FFF7F5;border:1px solid #FECDB8;border-radius:12px;padding:18px 16px;">
+      <div style="font-size:10px;font-weight:700;color:#FC4C02;letter-spacing:1px;margin-bottom:6px;">COMPETITION</div>
+      <div style="font-size:18px;font-weight:800;color:#111;margin-bottom:4px;">Dimanche 29 mars</div>
+      <div style="font-size:13px;color:#6B7280;">Allure run cible : <strong style="color:#FC4C02;">5'00"–5'20"/km</strong></div>
+    </div>`;
+  }
+
+  document.getElementById("plan-content").innerHTML = html;
+}
+
+function toggleDay(id) {
+  state.openDayId = state.openDayId === id ? null : id;
+  renderPlan();
+}
+
+function saveNote(id, val) {
+  state.notes[id] = val;
+  save();
+}
+
+function devalidate(id) {
+  state.completed[id] = false;
+  state.activities = state.activities.filter(a => a.planId !== id);
+  save();
+  renderHome();
+  renderStats();
+  renderPlan();
+}
+
+// ─── RENDER STATS ─────────────────────────────────────────────────────────────
+function renderStats() {
+  const totalDist = state.activities.reduce((s,a) => s+(a.distanceKm||0),0);
+  const totalTime = state.activities.reduce((s,a) => s+(a.duration||0),0);
+
+  const getWeekTime = w => {
+    const ids = PLAN.filter(d => d.week === w).map(d => d.id);
+    return state.activities.filter(a => ids.includes(a.planId)).reduce((s,a) => s+a.duration, 0);
+  };
+  const maxTime = Math.max(...[1,2,3].map(getWeekTime), 1);
+
+  let html = `
+    <div class="section-label">BILAN</div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">SÉANCES</div><div class="stat-value">${state.activities.length}</div></div>
+      <div class="stat-card"><div class="stat-label">DISTANCE</div><div class="stat-value">${totalDist.toFixed(1)}<span class="stat-unit">km</span></div></div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-label">TEMPS TOTAL</div><div class="stat-value">${fmtTime(totalTime)}</div></div>
+      <div class="stat-card"><div class="stat-label">SÉANCES PLAN</div><div class="stat-value">${Object.values(state.completed).filter(Boolean).length}<span class="stat-unit">/17</span></div></div>
+    </div>
+    <div class="section-label" style="margin-top:16px;">TEMPS PAR SEMAINE</div>
+    <div class="card">
+      ${[1,2,3].map(w => {
+        const t = getWeekTime(w);
+        const pct = (t/maxTime)*100;
+        return `<div style="margin-bottom:${w<3?14:0}px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+            <span style="font-size:12px;color:#374151;font-weight:500;">Sem. ${w} — ${["Construction","Simulation","Tapering"][w-1]}</span>
+            <span style="font-size:12px;font-weight:700;color:#FC4C02;">${fmtTime(t)}</span>
+          </div>
+          <div class="pbar"><div class="pbar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div class="section-label" style="margin-top:16px;">HISTORIQUE (${state.activities.length})</div>`;
+
+  if (state.activities.length === 0) {
+    html += `<div style="text-align:center;padding:32px 0;color:#D1D5DB;font-size:14px;">Aucune séance enregistrée</div>`;
+  } else {
+    [...state.activities].reverse().forEach(a => {
+      const hasBlocks = a.blockTimes && a.blockTimes.length > 0;
+      html += `
+      <div class="card" style="cursor:pointer;" onclick="toggleActivity('blocks-${a.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;color:#9CA3AF;margin-bottom:2px;">${a.date}</div>
+            <div style="font-size:15px;font-weight:700;color:#111;">${a.title}</div>
+          </div>
+          <div style="text-align:right;display:flex;align-items:center;gap:10px;">
+            <div>
+              <div style="font-size:18px;font-weight:800;color:#FC4C02;">${fmtTime(a.duration)}</div>
+              ${a.distanceKm > 0 ? `<div style="font-size:11px;color:#9CA3AF;">${a.distanceKm} km</div>` : ""}
+            </div>
+            ${hasBlocks ? `<div style="color:#D1D5DB;font-size:11px;">▼</div>` : ""}
+          </div>
+        </div>
+        ${hasBlocks ? `
+        <div id="blocks-${a.id}" style="display:none;margin-top:12px;border-top:1px solid #F3F4F6;padding-top:12px;">
+          ${a.blockTimes.map(bt => {
+            const diff = bt.planned !== null ? bt.actual - bt.planned : null;
+            const diffStr = diff !== null
+              ? (diff > 5 ? `<span style="color:#FC4C02;font-size:10px;">+${fmtTime(Math.abs(diff))}</span>`
+                : diff < -5 ? `<span style="color:#059669;font-size:10px;">-${fmtTime(Math.abs(diff))}</span>`
+                : `<span style="color:#9CA3AF;font-size:10px;">ok</span>`) : "";
+            return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F9FAFB;">
+              <div>
+                <div style="font-size:12px;font-weight:600;color:#374151;">${bt.label}${bt.km ? ` <span style="font-weight:400;color:#9CA3AF;">· ${bt.km}</span>` : ""}</div>
+                ${bt.planned !== null ? `<div style="font-size:10px;color:#C4C4C4;">prévu ${fmtTime(bt.planned)}</div>` : ""}
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:14px;font-weight:700;color:#111;font-variant-numeric:tabular-nums;">${fmtTime(bt.actual)}</div>
+                <div>${diffStr}</div>
+              </div>
+            </div>`;
+          }).join("")}
+        </div>` : ""}
+      </div>`;
+    });
+  }
+
+  document.getElementById("stats-content").innerHTML = html;
+}
+
+// ─── SESSION ─────────────────────────────────────────────────────────────────
+function startSession(planId) {
+  const basDay = PLAN.find(d => d.id === planId);
+  if (!basDay) return;
+  // Merge custom session overrides into a cloned day object
+  const day = { ...basDay, session: getSession(basDay) };
+  sess = { day, blockIdx:0, round:1, blockElapsed:0, totalElapsed:0, paused:false, phase:"countdown", completedBlocks:[], blockTimes:[], cdValue:3 };
+
+  document.getElementById("session-screen").classList.add("visible");
+
+  if (day.session.type === "rest") {
+    showRestScreen(day);
+    return;
+  }
+
+  // Countdown
+  showScreen("countdown");
+  document.getElementById("cd-title").textContent = day.title.toUpperCase();
+  document.getElementById("cd-number").textContent = "3";
+  sess.cdValue = 3;
+  beep(440, .1);
+
+  cdInterval = setInterval(() => {
+    sess.cdValue--;
+    if (sess.cdValue <= 0) {
+      clearInterval(cdInterval);
+      document.getElementById("cd-number").textContent = "GO";
+      tripleBeep();
+      setTimeout(() => startRunning(), 600);
+    } else {
+      document.getElementById("cd-number").textContent = sess.cdValue;
+      beep(440, .1);
+    }
+  }, 1000);
+}
+
+function showRestScreen(day) {
+  showScreen("rest");
+  document.getElementById("rest-title").textContent = day.title;
+  document.getElementById("rest-msg").textContent = day.session.message;
+}
+
+function startRunning() {
+  sess.phase = "running";
+  showScreen("running");
+  renderRunBlock();
+  startTick();
+}
+
+function startTick() {
+  clearInterval(tickInterval);
+  tickInterval = setInterval(() => {
+    if (sess.paused) return;
+    sess.totalElapsed++;
+    sess.blockElapsed++;
+
+    const block = currentBlock();
+    if (!block) return;
+
+    // Update displays
+    document.getElementById("run-total-time").textContent = "Total " + fmtTime(sess.totalElapsed);
+
+    if (block.duration !== null) {
+      const remaining = Math.max(0, block.duration - sess.blockElapsed);
+      document.getElementById("run-timer-value").textContent = fmtTime(remaining);
+      document.getElementById("run-timer-value").style.color = remaining <= 5 ? "#FC4C02" : "#111";
+      const pct = (sess.blockElapsed / block.duration) * 100;
+      document.getElementById("timer-bar").setAttribute("width", Math.min(pct, 100) + "%");
+
+      // Warning beeps
+      if (remaining <= 3 && remaining > 0) beep(660, .08);
+
+      // Auto-advance
+      if (remaining <= 0) advance();
+    } else {
+      document.getElementById("run-elapsed-value").textContent = fmtTime(sess.blockElapsed);
+    }
+  }, 1000);
+}
+
+function renderRunBlock() {
+  const block = currentBlock();
+  if (!block) return;
+  const day = sess.day;
+  const blocks = day.session.blocks;
+  const totalBlocks = blocks.length * (day.session.rounds || 1);
+  const donePct = (sess.completedBlocks.length / totalBlocks) * 100;
+
+  const ic = INT_COLORS[block.intensity] || INT_COLORS.medium;
+  const isCircuit = day.session.type === "circuit";
+
+  // Header
+  const hdr = document.getElementById("run-header");
+  hdr.style.background = ic.bg;
+  hdr.style.borderBottomColor = ic.bar;
+  document.getElementById("run-progress").style.width = donePct + "%";
+  document.getElementById("run-progress").style.background = ic.bar;
+
+  const roundLabel = isCircuit
+    ? `ROUND ${sess.round}/${day.session.rounds || 1} · STATION ${sess.blockIdx + 1}/${blocks.length}`
+    : `BLOC ${sess.blockIdx + 1}/${blocks.length}`;
+  document.getElementById("run-round-label").textContent = roundLabel;
+  document.getElementById("run-round-label").style.color = ic.text;
+
+  // Block info
+  document.getElementById("run-block-label").textContent = block.label.toUpperCase();
+  document.getElementById("run-block-label").style.color = ic.text;
+  document.getElementById("run-pace").textContent = block.pace || block.reps || "";
+  document.getElementById("run-km").textContent = block.km || "";
+  document.getElementById("run-instruction").textContent = block.instruction;
+
+  // Timer vs elapsed
+  const timerSection = document.getElementById("timer-section");
+  const elapsedSection = document.getElementById("elapsed-section");
+  if (block.duration !== null) {
+    timerSection.style.display = "block";
+    elapsedSection.style.display = "none";
+    const remaining = Math.max(0, block.duration - sess.blockElapsed);
+    document.getElementById("run-timer-value").textContent = fmtTime(remaining);
+    document.getElementById("timer-bar").setAttribute("width", "0%");
+  } else {
+    timerSection.style.display = "none";
+    elapsedSection.style.display = "block";
+    document.getElementById("run-elapsed-value").textContent = "00:00";
+  }
+
+  // Controls
+  const hasDuration = block.duration !== null;
+  const ctrlNext = document.getElementById("ctrl-next");
+  ctrlNext.textContent = hasDuration ? "Passer" : "Suivant →";
+  ctrlNext.style.background = hasDuration ? "#F9FAFB" : "#FC4C02";
+  ctrlNext.style.color = hasDuration ? "#9CA3AF" : "#fff";
+  ctrlNext.style.flex = hasDuration ? "" : "2";
+
+  // Upcoming
+  const upcoming = blocks.slice(sess.blockIdx + 1, sess.blockIdx + 3);
+  let upHtml = "";
+  if (upcoming.length > 0) {
+    upHtml = `<div class="upcoming-label">ENSUITE</div>`;
+    upcoming.forEach(b => {
+      const nc = INT_COLORS[b.intensity] || INT_COLORS.medium;
+      const meta = b.pace || b.reps || (b.duration ? fmtTime(b.duration) : "");
+      const kmLabel = b.km ? ` · ${b.km}` : "";
+      upHtml += `<div class="block-row">
+        <div class="block-dot" style="background:${nc.bar}"></div>
+        <span class="block-name">${b.label}</span>
+        <span class="block-meta">${meta}${kmLabel}</span>
+      </div>`;
+    });
+  }
+  document.getElementById("upcoming-section").innerHTML = upHtml;
+}
+
+function currentBlock() {
+  if (!sess.day) return null;
+  return sess.day.session.blocks[sess.blockIdx] || null;
+}
+
+function advance() {
+  clearInterval(tickInterval);
+  tripleBeep();
+  const block = currentBlock();
+  // Record actual time for this block
+  sess.blockTimes.push({
+    label: block ? block.label : "",
+    planned: block ? block.duration : null,
+    actual: sess.blockElapsed,
+    round: sess.round,
+    km: block ? (block.km || "") : "",
+  });
+  sess.completedBlocks.push({ blockIdx: sess.blockIdx, round: sess.round });
+  sess.blockElapsed = 0;
+
+  const blocks = sess.day.session.blocks;
+  const nextIdx = sess.blockIdx + 1;
+
+  if (nextIdx >= blocks.length) {
+    if (sess.round < (sess.day.session.rounds || 1)) {
+      sess.round++;
+      sess.blockIdx = 0;
+      startTick();
+      renderRunBlock();
+    } else {
+      endSession();
+    }
+  } else {
+    sess.blockIdx = nextIdx;
+    startTick();
+    renderRunBlock();
+  }
+}
+
+function nextBlock() { advance(); }
+
+function togglePause() {
+  sess.paused = !sess.paused;
+  document.getElementById("ctrl-pause").textContent = sess.paused ? "Reprendre" : "Pause";
+  document.getElementById("ctrl-pause").style.background = sess.paused ? "#FC4C02" : "#F3F4F6";
+  document.getElementById("ctrl-pause").style.color = sess.paused ? "#fff" : "#374151";
+}
+
+function endSession() {
+  clearInterval(tickInterval);
+  sess.phase = "done";
+  showScreen("done");
+  document.getElementById("done-title").textContent = sess.day.title;
+  document.getElementById("done-time").textContent = fmtTime(sess.totalElapsed);
+  document.getElementById("done-blocks-count").textContent = sess.blockTimes.length;
+  renderDoneBlocks();
+}
+
+function renderDoneBlocks() {
+  const times = sess.blockTimes;
+  const isCircuit = sess.day.session.type === "circuit";
+  let html = `<div style="font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;margin-bottom:10px;">DÉTAIL PAR BLOC</div>`;
+
+  // Group by round if circuit
+  let currentRound = 0;
+  times.forEach((bt, i) => {
+    if (isCircuit && bt.round !== currentRound) {
+      currentRound = bt.round;
+      html += `<div style="font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;margin:${i>0?'16px':0} 0 8px;">ROUND ${currentRound}</div>`;
+    }
+    const ic = (() => {
+      const block = sess.day.session.blocks.find(b => b.label === bt.label);
+      return INT_COLORS[(block && block.intensity) || "medium"] || INT_COLORS.medium;
+    })();
+    const diff = bt.planned !== null ? bt.actual - bt.planned : null;
+    const diffStr = diff !== null ? (diff > 5 ? `<span style="color:#FC4C02;font-size:11px;">+${fmtTime(Math.abs(diff))}</span>` : diff < -5 ? `<span style="color:#059669;font-size:11px;">-${fmtTime(Math.abs(diff))}</span>` : `<span style="color:#9CA3AF;font-size:11px;">dans le temps</span>`) : "";
+    html += `
+    <div style="background:#fff;border-radius:10px;padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);">
+      <div style="width:3px;height:36px;border-radius:2px;background:${ic.bar};flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:2px;">${bt.label}${bt.km ? `<span style="font-weight:400;color:#9CA3AF;"> · ${bt.km}</span>` : ""}</div>
+        <div style="font-size:11px;color:#9CA3AF;">${bt.planned !== null ? `Prévu ${fmtTime(bt.planned)}` : "Manuel"}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:18px;font-weight:800;color:#111;font-variant-numeric:tabular-nums;">${fmtTime(bt.actual)}</div>
+        <div>${diffStr}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById("done-blocks-list").innerHTML = html;
+}
+
+function toggleActivity(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === "none" ? "block" : "none";
+}
+
+function stopSession() {
+  // Can't use confirm() in iframe — show inline dialog
+  const existing = document.getElementById("stop-confirm");
+  if (existing) { existing.remove(); return; }
+  const d = document.createElement("div");
+  d.id = "stop-confirm";
+  d.style.cssText = "position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-radius:20px 20px 0 0;padding:24px 16px;z-index:300;box-shadow:0 -4px 24px rgba(0,0,0,.15);";
+  d.innerHTML = `
+    <div style="font-size:16px;font-weight:700;color:#111;margin-bottom:6px;">Arrêter la séance ?</div>
+    <div style="font-size:14px;color:#6B7280;margin-bottom:20px;">La progression ne sera pas enregistrée.</div>
+    <button onclick="document.getElementById('stop-confirm').remove();clearInterval(tickInterval);clearInterval(cdInterval);hideSession();"
+      style="width:100%;padding:14px;border-radius:10px;border:none;background:#FC4C02;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;font-family:inherit;">
+      Arrêter sans enregistrer
+    </button>
+    <button onclick="document.getElementById('stop-confirm').remove();"
+      style="width:100%;padding:14px;border-radius:10px;border:1px solid #E5E7EB;background:#fff;color:#374151;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
+      Continuer la séance
+    </button>`;
+  document.body.appendChild(d);
+}
+
+function cancelSession() {
+  const sd = document.getElementById("stop-confirm");
+  if (sd) sd.remove();
+  clearInterval(tickInterval);
+  clearInterval(cdInterval);
+  hideSession();
+}
+
+function validateSession() {
+  if (!sess.day) return;
+  markComplete(sess.day, sess.totalElapsed);
+  hideSession();
+}
+
+function validateRestSession() {
+  if (!sess.day) return;
+  markComplete(sess.day, 0);
+  hideSession();
+}
+
+function markComplete(day, duration) {
+  state.completed[day.id] = true;
+  const now = new Date();
+  // Remove any previous activity for this planId before adding new one
+  state.activities = state.activities.filter(a => a.planId !== day.id);
+  state.activities.push({
+    id: Date.now(),
+    planId: day.id,
+    title: day.title,
+    type: day.type,
+    duration: duration,
+    distanceKm: day.distanceKm || 0,
+    blockTimes: sess.blockTimes ? [...sess.blockTimes] : [],
+    date: now.toLocaleDateString("fr-FR", { weekday:"short", day:"numeric", month:"short" }),
+  });
+  save();
+}
+
+function hideSession() {
+  clearInterval(tickInterval);
+  clearInterval(cdInterval);
+  // Remove stop dialog if open
+  const sd = document.getElementById("stop-confirm");
+  if (sd) sd.remove();
+  sess = { day:null, blockIdx:0, round:1, blockElapsed:0, totalElapsed:0, paused:false, phase:"idle", completedBlocks:[], blockTimes:[], cdValue:3 };
+  document.getElementById("session-screen").classList.remove("visible");
+  // Always refresh all three views
+  renderHome();
+  renderStats();
+  renderPlan();
+}
+
+function showScreen(name) {
+  ["countdown","running","done","rest"].forEach(s => {
+    const el = document.getElementById(s + "-screen");
+    if (el) { el.style.display = s === name ? "flex" : "none"; }
+  });
+}
+
+// ─── EDIT MODAL ──────────────────────────────────────────────────────────────
+let editDayId = null;
+
+function openEdit(planId) {
+  const day = PLAN.find(d => d.id === planId);
+  if (!day || day.session.type === "rest") return;
+  editDayId = planId;
+  const session = getSession(day);
+  document.getElementById("edit-title").textContent = day.title;
+  document.getElementById("edit-modal").style.display = "block";
+
+  const blocks = session.blocks || [];
+  const fmtMins = s => s !== null ? Math.floor(s / 60) + ":" + pad(s % 60) : "";
+
+  let html = `<div style="font-size:11px;color:#9CA3AF;font-weight:600;letter-spacing:.5px;margin-bottom:14px;">
+    Modifie les durées (mm:ss), allures et distances de chaque bloc.
+  </div>`;
+
+  if (session.rounds > 1) {
+    html += `<div style="margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:6px;">NOMBRE DE ROUNDS</div>
+      <input id="edit-rounds" type="number" min="1" max="10" value="${session.rounds}"
+        style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid #E5E7EB;font-size:15px;color:#111;">
+    </div>`;
+  }
+
+  html += `<div style="font-size:11px;font-weight:700;color:#374151;letter-spacing:.5px;margin-bottom:10px;">BLOCS</div>`;
+
+  blocks.forEach((b, i) => {
+    const ic = INT_COLORS[b.intensity] || INT_COLORS.medium;
+    const hasDuration = b.duration !== null;
+    html += `
+    <div style="background:#F9FAFB;border-radius:10px;padding:12px;margin-bottom:8px;border-left:3px solid ${ic.bar};">
+      <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:10px;">${b.label}</div>
+      <div style="display:flex;gap:8px;">
+        ${hasDuration ? `
+        <div style="flex:1;">
+          <div style="font-size:10px;color:#9CA3AF;font-weight:600;margin-bottom:4px;">DURÉE (mm:ss)</div>
+          <input id="edit-dur-${i}" type="text" value="${fmtMins(b.duration)}" placeholder="4:30"
+            style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid #E5E7EB;font-size:14px;color:#111;font-variant-numeric:tabular-nums;">
+        </div>` : `
+        <div style="flex:1;">
+          <div style="font-size:10px;color:#9CA3AF;font-weight:600;margin-bottom:4px;">REPS / DIST</div>
+          <input id="edit-reps-${i}" type="text" value="${b.reps || ""}"
+            style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid #E5E7EB;font-size:14px;color:#111;">
+        </div>`}
+        <div style="flex:1;">
+          <div style="font-size:10px;color:#9CA3AF;font-weight:600;margin-bottom:4px;">ALLURE / INFO</div>
+          <input id="edit-pace-${i}" type="text" value="${b.pace || ""}"
+            style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid #E5E7EB;font-size:14px;color:#111;">
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:10px;color:#9CA3AF;font-weight:600;margin-bottom:4px;">KM / DIST</div>
+          <input id="edit-km-${i}" type="text" value="${b.km || ""}"
+            style="width:100%;padding:9px 10px;border-radius:8px;border:1px solid #E5E7EB;font-size:14px;color:#111;">
+        </div>
+      </div>
+    </div>`;
+  });
+
+  document.getElementById("edit-body").innerHTML = html;
+}
+
+function parseMmSs(str) {
+  if (!str) return null;
+  const parts = str.split(":");
+  if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+  if (parts.length === 1) return parseInt(parts[0]);
+  return null;
+}
+
+function saveEdit() {
+  const day = PLAN.find(d => d.id === editDayId);
+  if (!day) return;
+  const session = getSession(day);
+  const blocks = session.blocks || [];
+
+  const newBlocks = blocks.map((b, i) => {
+    const hasDuration = b.duration !== null;
+    const newDur = hasDuration ? parseMmSs(document.getElementById(`edit-dur-${i}`)?.value) : null;
+    const newReps = !hasDuration ? (document.getElementById(`edit-reps-${i}`)?.value || b.reps) : b.reps;
+    const newPace = document.getElementById(`edit-pace-${i}`)?.value || b.pace;
+    const newKm = document.getElementById(`edit-km-${i}`)?.value || b.km;
+    return { ...b, duration: newDur !== null ? newDur : b.duration, reps: newReps, pace: newPace, km: newKm };
+  });
+
+  const roundsInput = document.getElementById("edit-rounds");
+  const newRounds = roundsInput ? parseInt(roundsInput.value) || session.rounds : session.rounds;
+
+  state.customSessions[editDayId] = { blocks: newBlocks, rounds: newRounds };
+  save();
+  closeEdit();
+  renderPlan();
+}
+
+function resetEdit() {
+  if (!editDayId) return;
+  delete state.customSessions[editDayId];
+  save();
+  closeEdit();
+  renderPlan();
+}
+
+function closeEdit() {
+  document.getElementById("edit-modal").style.display = "none";
+  editDayId = null;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+load();
+renderHome();
+</script>
+</body>
+</html>
